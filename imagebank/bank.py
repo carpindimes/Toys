@@ -26,7 +26,7 @@ from PIL import Image, ImageDraw, ImageOps
 
 ROOT = Path(__file__).resolve().parent
 CFG = json.loads((ROOT / "config.json").read_text())
-STATE_DIR = ROOT / "state"
+STATE_DIR = Path(os.environ.get("IMAGEBANK_STATE", ROOT / "state"))  # the Mac video run uses state/video
 WORK = Path(os.environ.get("IMAGEBANK_WORK", ROOT / "work"))
 RAW, CROPS, REVIEW, OUT = WORK / "raw", WORK / "crops", WORK / "review", WORK / "out"
 SEEN_F = STATE_DIR / "seen.json"
@@ -412,7 +412,8 @@ def cmd_finalize():
             crop, _ = do_crop(im, float(d["crop_pos"]))
             crop.save(crop_path, quality=92)
         st["counters"][cat] = st["counters"].get(cat, 0) + 1
-        name = f"{today}_{cat}_{st['counters'][cat]:04d}.jpg"
+        tag = os.environ.get("IMAGEBANK_NAME_TAG", "")  # "v" for video frames, so names never collide
+        name = f"{today}_{cat}_{tag}{st['counters'][cat]:04d}.jpg"
         dest = OUT / CFG["categories"][cat] / name
         dest.parent.mkdir(parents=True, exist_ok=True)
         Image.open(crop_path).save(dest, quality=92)
