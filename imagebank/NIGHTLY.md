@@ -19,8 +19,11 @@ Drive (owner's My Drive):
 2. **Fetch.** `cd imagebank && python3 bank.py fetch`. This can take 20–40 minutes (Wikimedia rate limits); run it in the background and wait.
    If Wikimedia keeps returning 429, carry on with whatever was downloaded and mention it in the report.
 3. **Prep.** `python3 bank.py prep`. This trims borders, smart-crops to 9:16, OCRs for text and dedupes against earlier nights.
-4. **Visual review. This is the important part.** Open every file listed in `work/prepped.json`
-   whose `status` is `ok` or `flag` (its `review` path). Each sheet shows the original with the
+4. **Visual review. This is the important part.** `prep` splits the sheets to review into `work/batch_<n>.txt`
+   (40 paths each). Launch one subagent per batch **in parallel** (Agent tool), each told to read this file's
+   step 4, open every sheet in its batch file, and write its decisions to `work/decisions_<n>.json`. Spot-check a few
+   of their keeps yourself before finalizing. (The `cid` is the sheet's filename without `.jpg`; OCR hits are
+   in `work/prepped.json` under `ocr`.) Each sheet shows the original with the
    red 9:16 crop box on the left, and the crop on the right. Judge **the crop**:
    - **REJECT** if the crop contains *any* overlay: subtitles, captions, headline bars, watermarks,
      logos or bugs added in editing, borders, collage/split layouts, stickers, emoji, screenshots,
@@ -38,7 +41,7 @@ Drive (owner's My Drive):
    `scene` (one sentence on what is happening), `framing` (a direction for the photographer, **starting with
    action verbs**, e.g. "CROUCH to her eye level; FRAME her in the lower half with the collapsed block rising
    behind; WAIT for her to glance at the empty pot"), and `why` (why it would stop a scroll and drive donations).
-   Write all decisions to `work/decisions.json` as `{cid: {keep, category, scene, framing, why, crop_pos?}}`;
+   Write decisions to `work/decisions_<n>.json` as `{cid: {keep, category, scene, framing, why, crop_pos?}}`;
    rejected ones need only `{"keep": false, "reason": "..."}`. Work in batches and save as you go.
 5. **Finalize.** `python3 bank.py finalize`. This writes `work/upload_manifest.json` and updates `state/`.
 6. **Upload.** For each manifest entry, call Google Drive `create_file` with `title` = name,

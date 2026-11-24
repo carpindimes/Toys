@@ -162,6 +162,9 @@ SOURCES = {"commons": (commons_batch, 0), "openverse": (openverse_batch, 1)}
 
 
 def cmd_fetch():
+    import shutil
+    if WORK.exists():  # every night starts clean; state/ holds what must persist
+        shutil.rmtree(WORK)
     st = load_state()
     seen = set(st["ids"])
     RAW.mkdir(parents=True, exist_ok=True)
@@ -381,13 +384,18 @@ def cmd_prep():
             k = r["reason"].split(" (")[0]
             reasons[k] = reasons.get(k, 0) + 1
     print("rejected because:", reasons)
-    print(f"review sheets in {REVIEW}")
+    todo = [r["review"] for r in res if r["status"] != "reject"]
+    for i in range(0, len(todo), 40):
+        (WORK / f"batch_{i // 40 + 1}.txt").write_text("\n".join(todo[i:i + 40]))
+    print(f"{len(todo)} review sheets in {REVIEW}, split into {(len(todo) + 39) // 40} batch files work/batch_<n>.txt")
 
 
 # ---------------------------------------------------------------- finalize
 def cmd_finalize():
     prepped = {r["cid"]: r for r in json.loads((WORK / "prepped.json").read_text())}
-    decisions = json.loads((WORK / "decisions.json").read_text())
+    decisions = {}
+    for f in sorted(WORK.glob("decisions*.json")):  # decisions.json and/or per-batch decisions_<n>.json
+        decisions.update(json.loads(f.read_text()))
     st = load_state()
     today = dt.date.today().isoformat()
     rows, manifest = [], []
