@@ -46,24 +46,40 @@ def list_videos(limit):
 
 
 def extract(video, outdir, per_video):
-    """Scene-change frames plus a frame every 3s, keep the sharpest, drop near-duplicates."""
+    """One frame per second -> split into shots -> keep the sharpest frame per shot
+    (and per 12s of a long shot), then drop near-duplicates across the whole video."""
     outdir.mkdir(parents=True, exist_ok=True)
-    run(["ffmpeg", "-loglevel", "error", "-i", str(video), "-vf",
-         "select='gt(scene,0.2)+not(mod(n,90))',scale='min(1920,iw)':-2",
-         "-vsync", "vfr", "-q:v", "2", str(outdir / "f_%05d.jpg")])
-    scored = []
-    for f in sorted(outdir.glob("f_*.jpg")):
-        g = cv2.imread(str(f), cv2.IMREAD_GRAYSCALE)
-        if g is None or g.mean() < 25 or g.mean() > 235:  # black/white title cards and fades
-            f.unlink(); continue
-        scored.append((cv2.Laplacian(g, cv2.CV_64F).var(), f))
-    scored.sort(reverse=True)
+    run(["ffmpeg", "-loglevel", "error", "-i", str(video), "-vf", "fps=1,scale='min(1920,iw)':-2",
+         "-q:v", "2", str(outdir / "s_%05d.jpg")])
+    frames = sorted(outdir.glob("s_*.jpg"))
+    info, prev_hist, prev_ph, prev_mean, shot, start = [], None, None, 0, 0, 0
+    for i, f in enumerate(frames):
+        im = cv2.imread(str(f))
+        g = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+        hsv = cv2.cvtColor(cv2.resize(im, (160, 90)), cv2.COLOR_BGR2HSV)
+        hist = cv2.normalize(cv2.calcHist([hsv], [0, 1], None, [16, 16], [0, 180, 0, 256]), None).flatten()
+        ph = imagehash.phash(Image.open(f))
+        if prev_hist is not None and (cv2.compareHist(prev_hist, hist, cv2.HISTCMP_CORREL) < 0.7
+                                      or ph - prev_ph > 18 or abs(g.mean() - prev_mean) > 20
+                                      or i - start >= 12):
+            shot += 1; start = i
+        prev_hist, prev_ph, prev_mean = hist, ph, g.mean()
+        usable = 25 < g.mean() < 235  # skip black/white title cards and fades
+        info.append((shot, cv2.Laplacian(g, cv2.CV_64F).var() if usable else -1, f))
+    best = {}
+    for shot, sharp, f in info:
+        if sharp > best.get(shot, (-1, None))[0]:
+            best[shot] = (sharp, f)
+    picks = sorted((v for v in best.values() if v[0] >= 60), key=lambda x: x[0], reverse=True)
     kept, hashes = [], []
-    for sharp, f in scored:
+    for sharp, f in picks:
         h = imagehash.phash(Image.open(f))
-        if sharp < 60 or any(h - k <= 10 for k in hashes) or len(kept) >= per_video:
-            f.unlink(); continue
+        if any(h - k <= 12 for k in hashes) or len(kept) >= per_video:
+            continue
         hashes.append(h); kept.append(f)
+    for f in frames:
+        if f not in kept:
+            f.unlink()
     return kept
 
 
