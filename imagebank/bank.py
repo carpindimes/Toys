@@ -151,7 +151,10 @@ def openverse_batch(q, page):
 
 
 OFF_TOPIC = re.compile(r"protest|vigil|rally|march|demonstrat|flotilla|solidarity|encampment|boycott|"
-                       r"conference|press|parliament|embassy|ship to gaza|exhibition|map of|infographic", re.I)
+                       r"conference|press|parliament|embassy|ship to gaza|exhibition|map of|infographic|"
+                       r"puja|pandal|kolkata|india|teach-in|trident|pier|jlots|aircraft|c-17|c-130|airdrop|"
+                       r"\bidf\b|soldier|navy|army|marines|military|painting|watercolou?r|engraving|botticelli|"
+                       r"\b1[89]\d\d\b|cyprus|jerash|jordan|chicago|new york|london|paris|berlin", re.I)
 
 
 def on_topic(c):
@@ -342,6 +345,7 @@ def prep_one(c):
     crop, box = do_crop(im, pos)
     words = ocr_words(crop)
     ph = str(imagehash.phash(crop))
+    ph_full = str(imagehash.phash(im))
     status, reason = "ok", ""
     if len(words) >= 10:
         status, reason = "reject", f"overlay text ({len(words)} words)"
@@ -352,7 +356,7 @@ def prep_one(c):
     info = f"{w}x{h} -> {crop.size[0]}x{crop.size[1]}  faces={nfaces}  ocr={[x['t'] for x in words][:6]}"
     rv = review_sheet(cid, im, box, crop, info) if status != "reject" else None
     return {**c, "cid": cid, "status": status, "reason": reason, "ocr": words, "phash": ph,
-            "faces": nfaces, "trimmed": trimmed, "crop_pos": round(pos, 3), "crop": str(crop_p),
+            "phash_full": ph_full, "faces": nfaces, "trimmed": trimmed, "crop_pos": round(pos, 3), "crop": str(crop_p),
             "review": rv, "work_size": [w, h], "crop_size": list(crop.size)}
 
 
@@ -369,10 +373,11 @@ def cmd_prep():
         if r["status"] == "reject" or "phash" not in r:
             continue
         hsh = imagehash.hex_to_hash(r["phash"])
-        if any(hsh - k <= 8 for k in known + batch):
+        full = imagehash.hex_to_hash(r["phash_full"])
+        if any(hsh - k <= 8 or full - k <= 8 for k in known + batch):
             r["status"], r["reason"] = "reject", "duplicate of an earlier image"
             continue
-        batch.append(hsh)
+        batch.extend([hsh, full])
     (WORK / "prepped.json").write_text(json.dumps(res, indent=1))
     n = {}
     for r in res:
@@ -433,6 +438,8 @@ def cmd_finalize():
         st["ids"].append(r["id"])
         if r.get("phash") and (decisions.get(cid, {}).get("keep") or r["status"] != "reject"):
             st["phashes"].append(r["phash"])
+            if r.get("phash_full"):
+                st["phashes"].append(r["phash_full"])
     st["ids"] = sorted(set(st["ids"]))
     st["phashes"] = sorted(set(st["phashes"]))
     new_file = not SHEET_F.exists()
