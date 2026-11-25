@@ -31,7 +31,7 @@ WORK = Path(os.environ.get("IMAGEBANK_WORK", ROOT / "work"))
 RAW, CROPS, REVIEW, OUT = WORK / "raw", WORK / "crops", WORK / "review", WORK / "out"
 SEEN_F = STATE_DIR / "seen.json"
 SHEET_F = STATE_DIR / "contact_sheet.csv"
-UA = "RefImageBank/1.0 (internal photo-reference tool; python-requests)"
+UA = "RefImageBank/1.0 (https://commons.wikimedia.org/wiki/User:Beatleali; reference-photo tool)"
 RATIO = 9 / 16
 SHEET_COLS = ["filename", "category", "date_added", "scene", "framing_direction", "why_it_works",
               "cropped_from", "creator", "license", "source", "source_link", "drive_link"]

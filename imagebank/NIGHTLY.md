@@ -16,8 +16,8 @@ Drive (owner's My Drive):
 
 1. **Setup.** `cd` into the repo, `git fetch origin claude/relaxed-edison-y4afki && git checkout claude/relaxed-edison-y4afki && git pull`.
    If `tesseract` or the Python packages are missing, run `bash imagebank/setup.sh`.
-2. **Check the Wikimedia token.** `curl -s -A "RefImageBank/1.0" "https://commons.wikimedia.org/w/api.php?action=query&meta=userinfo&format=json"`
-   should show the owner's Wikimedia username. If it shows `"anon"`, the saved network secret isn't being applied.
+2. **Check the Wikimedia token.** `curl -s "https://commons.wikimedia.org/w/api.php?action=query&meta=userinfo&format=json"`
+   should show the owner's Wikimedia username (Beatleali). If it shows `"anon"`, the saved network secret isn't being applied.
    Carry on, but say so in the report.
 2b. **Fetch.** `cd imagebank && python3 bank.py fetch`. This can take 20–40 minutes (Wikimedia rate limits); run it in the background and wait.
    If Wikimedia keeps returning 429, carry on with whatever was downloaded and mention it in the report.
