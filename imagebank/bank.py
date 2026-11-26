@@ -58,13 +58,27 @@ def save_state(st):
     SEEN_F.write_text(json.dumps(st, indent=1))
 
 
+BLOCKED_HOSTS = {}  # host -> reason; a source that is out of quota is skipped for the rest of the run
+
+
 def get_json(url, params, tries=4):
+    host = url.split('/')[2]
+    if host in BLOCKED_HOSTS:
+        return None
     for i in range(tries):
         try:
             r = S.get(url, params=params, timeout=40)
             if r.status_code == 429:
-                print(f"  rate-limited by {url.split('/')[2]}, waiting...", file=sys.stderr)
-                time.sleep(30 * (i + 1)); continue
+                try:
+                    wait = int(r.headers.get("retry-after", "0"))
+                except ValueError:
+                    wait = 0
+                if wait > 300 or i == tries - 1:  # daily quota gone: stop asking this host tonight
+                    BLOCKED_HOSTS[host] = f"rate limit, retry after {wait // 60} min" if wait else "rate limit"
+                    print(f"  ! {host}: {BLOCKED_HOSTS[host]}; skipping it for the rest of this run", file=sys.stderr)
+                    return None
+                print(f"  rate-limited by {host}, waiting...", file=sys.stderr)
+                time.sleep(max(wait, 30 * (i + 1))); continue
             r.raise_for_status()
             return r.json()
         except Exception as e:  # noqa
@@ -226,6 +240,8 @@ def cmd_fetch():
     for c in ok:
         by_src[c["source"]] = by_src.get(c["source"], 0) + 1
     print(f"downloaded {len(ok)}: {by_src}")
+    for host, why in BLOCKED_HOSTS.items():
+        print(f"source unavailable tonight: {host} ({why})")
 
 
 # ---------------------------------------------------------------- prep
