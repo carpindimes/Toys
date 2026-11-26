@@ -8,6 +8,20 @@
     "life-among-ruins": "2 - Life Among the Ruins",
     "receiving-aid": "3 - Receiving Aid"
   },
+  "priority_queries": [
+    "deepcat:\"Children of Gaza during the war 23-25\"",
+    "deepcat:\"Starvation in Gaza\"",
+    "deepcat:\"Food inside the Gaza Strip during the war of 23-25\"",
+    "deepcat:\"Humanitarian aid for the Gaza Strip during the Gaza war\"",
+    "deepcat:\"Women in the Gaza war\"",
+    "deepcat:\"Gaza After Gaza war (2023–present)\"",
+    "deepcat:\"Palestinians in the Gaza war\"",
+    "deepcat:\"Humanitarian crises of the Gaza war\" children",
+    "deepcat:\"Humanitarian crises of the Gaza war\" tent",
+    "deepcat:\"Humanitarian crises of the Gaza war\" queue",
+    "deepcat:\"Humanitarian crises of the Gaza war\" water",
+    "deepcat:\"Humanitarian crises of the Gaza war\" displaced"
+  ],
   "queries": [
     "gaza war 23-25",
     "gaza war 2023-2025",

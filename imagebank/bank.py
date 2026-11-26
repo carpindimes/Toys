@@ -168,10 +168,16 @@ OFF_TOPIC = re.compile(r"protest|vigil|rally|march|demonstrat|flotilla|solidarit
                        r"conference|press|parliament|embassy|ship to gaza|exhibition|map of|infographic|"
                        r"puja|pandal|kolkata|india|teach-in|trident|pier|jlots|aircraft|c-17|c-130|airdrop|"
                        r"\bidf\b|soldier|navy|army|marines|military|painting|watercolou?r|engraving|botticelli|"
+                       r"canberra|penny wong|bras[ií]lia|mozambique|dubai|sharjah|sderot|kissufim|herzliya|petah tikva|"
+                       r"west bank|huwara|santiago|australia|albania|japan|doha|auckland|northern ireland|petersburg|"
+                       r"archaeolog|tell umm amer|postcard|cartoon|caricature|"
                        r"\b1[89]\d\d\b|cyprus|jerash|jordan|chicago|new york|london|paris|berlin", re.I)
 
 
 def on_topic(c):
+    m = re.match(r"(\d{4})", c.get("date") or "")
+    if m and int(m.group(1)) < 2000:  # archive photos: not the situation the team is shooting
+        return False
     return not OFF_TOPIC.search(" ".join([c.get("title", ""), c.get("description", "")]))
 
 
@@ -188,13 +194,16 @@ def cmd_fetch():
     pool_target = int(os.environ.get("IMAGEBANK_POOL", CFG["candidate_pool_per_night"]))
     queries = CFG["queries"]
     start = st["query_start"] % len(queries)
-    order = queries[start:] + queries[:start]
+    # category searches (Commons only) are the best-targeted source, so they go first every night
+    order = CFG.get("priority_queries", []) + queries[start:] + queries[:start]
     cands, got_ids = [], set()
     exhausted_rounds = 0
     while len(cands) < pool_target and exhausted_rounds < 2:
         progress = False
         for q in order:
             for sname, (fn, first) in SOURCES.items():
+                if sname != "commons" and re.match(r"(deep|in)cat(egory)?:", q):
+                    continue
                 key = f"{sname}:{q}"
                 cur = st["cursor"].get(key, first)
                 if cur == -1:
