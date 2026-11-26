@@ -9,18 +9,17 @@
     "receiving-aid": "3 - Receiving Aid"
   },
   "priority_queries": [
+    "RafahKid",
+    "\"Al Jazeera English\" gaza",
+    "\"Gaza Strip\" displaced",
+    "\"displaced Palestinians\" \"Gaza Strip\"",
+    "\"Nuseirat camp\"",
+    "\"Jabalia camp\"",
+    "Mawasi",
     "deepcat:\"Children of Gaza during the war 23-25\"",
-    "deepcat:\"Starvation in Gaza\"",
     "deepcat:\"Food inside the Gaza Strip during the war of 23-25\"",
     "deepcat:\"Humanitarian aid for the Gaza Strip during the Gaza war\"",
-    "deepcat:\"Women in the Gaza war\"",
-    "deepcat:\"Gaza After Gaza war (2023–present)\"",
-    "deepcat:\"Palestinians in the Gaza war\"",
-    "deepcat:\"Humanitarian crises of the Gaza war\" children",
-    "deepcat:\"Humanitarian crises of the Gaza war\" tent",
-    "deepcat:\"Humanitarian crises of the Gaza war\" queue",
-    "deepcat:\"Humanitarian crises of the Gaza war\" water",
-    "deepcat:\"Humanitarian crises of the Gaza war\" displaced"
+    "deepcat:\"Palestinians in the Gaza war\""
   ],
   "queries": [
     "gaza war 23-25",

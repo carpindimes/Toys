@@ -47,6 +47,12 @@ Drive (owner's My Drive):
    Write decisions to `work/decisions_<n>.json` as `{cid: {keep, category, scene, framing, why, crop_pos?}}`;
    rejected ones need only `{"keep": false, "reason": "..."}`. Work in batches and save as you go.
 5. **Finalize.** `python3 bank.py finalize`. This writes `work/upload_manifest.json` and updates `state/`.
+5b. **Top-up round (if fewer than ~40 kept and it's before 05:00 UTC).** Upload round 1 first (step 6) and keep its
+   `{name: file_id}` map. Then run fetch → prep → review → finalize again with `IMAGEBANK_WORK=work2` on every command
+   (finalize marks round 1 as seen, so nothing repeats; subagents must be told the folder is `work2`). Upload round 2,
+   merge both maps into `work2/uploads.json` and run `IMAGEBANK_WORK=work2 python3 bank.py links work2/uploads.json`,
+   so tonight's single contact sheet covers both rounds. A source out of quota (e.g. Openverse, shared cloud IP) is skipped
+   automatically for the night; mention it in the report.
 6. **Upload.** For each manifest entry, call Google Drive `create_file` with `title` = name,
    `parentId` = the category folder id above, `contentMimeType` = `image/jpeg`,
    `disableConversionToGoogleType` = true and `base64Content` = the entry's `ref` (a file reference;

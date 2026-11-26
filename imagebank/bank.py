@@ -26,8 +26,8 @@ from PIL import Image, ImageDraw, ImageOps
 
 ROOT = Path(__file__).resolve().parent
 CFG = json.loads((ROOT / "config.json").read_text())
-STATE_DIR = Path(os.environ.get("IMAGEBANK_STATE", ROOT / "state"))  # the Mac video run uses state/video
-WORK = Path(os.environ.get("IMAGEBANK_WORK", ROOT / "work"))
+STATE_DIR = (ROOT / os.environ.get("IMAGEBANK_STATE", "state")).resolve()  # the Mac video run uses state/video
+WORK = (ROOT / os.environ.get("IMAGEBANK_WORK", "work")).resolve()  # relative paths are relative to imagebank/
 RAW, CROPS, REVIEW, OUT = WORK / "raw", WORK / "crops", WORK / "review", WORK / "out"
 SEEN_F = STATE_DIR / "seen.json"
 SHEET_F = STATE_DIR / "contact_sheet.csv"
@@ -101,7 +101,7 @@ def commons_batch(q, offset):
     """Wikimedia Commons file search. Returns (candidates, next_offset)."""
     d = get_json("https://commons.wikimedia.org/w/api.php", {
         "action": "query", "format": "json", "generator": "search",
-        "gsrsearch": f"{q} filetype:bitmap -protest -encampment -solidarity -rally -demonstration -march -vigil -flotilla", "gsrnamespace": 6, "gsrlimit": 40, "gsroffset": offset,
+        "gsrsearch": f"{q} filetype:bitmap -protest -encampment -solidarity -rally -demonstration -march -vigil -flotilla -hostage -hostages -kidnapped", "gsrnamespace": 6, "gsrlimit": 40, "gsroffset": offset,
         "prop": "imageinfo", "iiprop": "url|size|mime|extmetadata", "iiurlwidth": 1920,
         "iiextmetadatafilter": "Artist|LicenseShortName|DateTimeOriginal|ImageDescription|Credit"})
     if not d:
@@ -170,7 +170,8 @@ OFF_TOPIC = re.compile(r"protest|vigil|rally|march|demonstrat|flotilla|solidarit
                        r"\bidf\b|soldier|navy|army|marines|military|painting|watercolou?r|engraving|botticelli|"
                        r"canberra|penny wong|bras[ií]lia|mozambique|dubai|sharjah|sderot|kissufim|herzliya|petah tikva|"
                        r"west bank|huwara|santiago|australia|albania|japan|doha|auckland|northern ireland|petersburg|"
-                       r"archaeolog|tell umm amer|postcard|cartoon|caricature|"
+                       r"archaeolog|tell umm amer|postcard|cartoon|caricature|hostage|kidnap|tel aviv|holon|haifa|ashdod|"
+                       r"knesset|golan|pakistan|prague|pune|jaffa|sharm|nova festival|tunis|saudi|bring them home|"
                        r"\b1[89]\d\d\b|cyprus|jerash|jordan|chicago|new york|london|paris|berlin", re.I)
 
 
