@@ -172,6 +172,8 @@ OFF_TOPIC = re.compile(r"protest|vigil|rally|march|demonstrat|flotilla|solidarit
                        r"west bank|huwara|santiago|australia|albania|japan|doha|auckland|northern ireland|petersburg|"
                        r"archaeolog|tell umm amer|postcard|cartoon|caricature|hostage|kidnap|tel aviv|holon|haifa|ashdod|"
                        r"knesset|golan|pakistan|prague|pune|jaffa|sharm|nova festival|tunis|saudi|bring them home|"
+                       r"raphia|raffia|moth|mosa[iï]c|tr[ée]sors|institut du monde arabe|louvre|museum|vienna|madagascar|"
+                       r"benin|oval office|kibbutz|be.eri|settlers|disengagement|gush katif|egyptian side|"
                        r"\b1[89]\d\d\b|cyprus|jerash|jordan|chicago|new york|london|paris|berlin", re.I)
 
 
